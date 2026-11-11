@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#6438ed">
+<title>TIKSAVE | تحميل TikTok</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Tahoma,Arial,sans-serif;background:#f7f7fa;color:#181818}
+header{height:72px;background:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 20px;box-shadow:0 1px 8px #0001}
+.brand{font-weight:900;font-size:22px;display:flex;align-items:center;gap:10px}.logo{background:#6038e9;color:#fff;width:40px;height:40px;border-radius:7px;display:grid;place-items:center;font-size:27px}
+.menu{font-size:27px;color:#173b5b}
+main{background:linear-gradient(115deg,#5141ed,#b000f4);padding:38px 18px 34px;min-height:325px;text-align:center;color:#fff}
+h1{font-size:32px;margin:0 0 30px;font-weight:800}
+.input-wrap{max-width:650px;margin:auto;background:#f3e7fb;border-radius:12px;padding:8px;display:flex;gap:8px;align-items:center}
+input[type=url]{min-width:0;flex:1;border:0;outline:0;background:transparent;padding:15px 12px;font-size:16px;text-align:right;color:#222}
+input::placeholder{color:#aaa}.paste{border:0;background:#fff;color:#6244db;border-radius:5px;padding:12px;font-size:14px;cursor:pointer}
+.download{display:block;width:100%;max-width:650px;margin:12px auto 0;border:1px solid #fff;background:linear-gradient(90deg,#bd00ed,#6539e9);color:#fff;border-radius:12px;padding:17px;font-size:20px;cursor:pointer}
+.download:disabled{opacity:.65;cursor:wait}.rights{max-width:650px;margin:15px auto 0;text-align:right;font-size:13px;line-height:1.8}
+.status{max-width:650px;margin:15px auto 0;background:#fff;color:#333;padding:12px;border-radius:8px;display:none;line-height:1.8;overflow-wrap:anywhere}
+.info{max-width:650px;margin:26px auto;padding:20px;background:#fff;border-radius:12px;box-shadow:0 3px 18px #0000000c}
+.info h2{font-size:20px;margin:0 0 12px}.info p{color:#666;line-height:1.9;margin:0}
+footer{text-align:center;color:#888;font-size:12px;padding:18px;line-height:1.8}
+a{color:#6338df;font-weight:bold}
+@media(max-width:480px){h1{font-size:29px}main{padding-top:35px}}
+</style></head>
+<body>
+<header><div class="menu">☰</div><div class="brand"><span class="logo">↓</span> TIKSAVE</div></header>
+<main>
+<h1>تحميل مقاطع تيك توك</h1>
+<div class="input-wrap"><input id="url" type="url" placeholder="الصق رابط المقطع هنا" autocomplete="off"><button class="paste" id="paste" type="button">لصق الرابط</button></div>
+<button class="download" id="go" type="button">تحميل</button>
+<div class="rights"><label><input id="rights" type="checkbox"> أؤكد أن المقطع ملكي أو لدي إذن من صاحبه لتنزيله.</label></div>
+<div class="status" id="status" role="status" aria-live="polite"></div>
+</main>
+<section class="info"><h2>طريقة الاستخدام</h2><p>انسخ رابط مقطع TikTok العام، والصقه في الخانة ثم اضغط تحميل. قد تتغير إمكانية التنزيل حسب إعدادات المقطع وقيود TikTok. لا يضمن الموقع إزالة العلامة المائية.</p></section>
+<footer>استخدم الخدمة للمقاطع التي تملكها أو لديك تصريح بتنزيلها فقط، واحترم حقوق النشر وشروط المنصة.</footer>
+<script>
+const urlInput=document.getElementById('url'), statusBox=document.getElementById('status'), go=document.getElementById('go');
+document.getElementById('paste').addEventListener('click',async()=>{try{urlInput.value=await navigator.clipboard.readText();}catch(e){statusBox.style.display='block';statusBox.textContent='تعذر الوصول للحافظة. اضغط مطولًا داخل الخانة واختر لصق.';}});
+go.addEventListener('click',async()=>{
+ statusBox.style.display='block';
+ if(!urlInput.value.trim()){statusBox.textContent='الصق رابط المقطع أولًا.';return;}
+ if(!document.getElementById('rights').checked){statusBox.textContent='يرجى تأكيد امتلاكك للمقطع أو حصولك على إذن.';return;}
+ go.disabled=true;go.textContent='جارٍ تجهيز الفيديو...';statusBox.textContent='جارٍ الاتصال بالمصدر، قد يستغرق ذلك بعض الوقت.';
+ try{
+  const response=await fetch('/api/download',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url:urlInput.value.trim(),rights:true})});
+  const result=await response.json();
+  if(!response.ok)throw new Error(result.error||'حدث خطأ أثناء التنزيل.');
+  statusBox.innerHTML='تم تجهيز الفيديو. '+result.note+'<br><a href="'+result.download_url+'">اضغط هنا لتنزيل الفيديو</a>';
+ }catch(error){statusBox.textContent=error.message;}
+ finally{go.disabled=false;go.textContent='تحميل';}
+});
+</script></body></html>
